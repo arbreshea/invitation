@@ -78,9 +78,6 @@ export default function InviteRsvpForm({
 
   return (
     <div className="bg-linear-to-b from-amber-50 to-rose-50 py-6 px-3 text-[#264788]">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-200/35 blur-2xl" />
-      <div className="pointer-events-none absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-rose-200/25 blur-2xl" />
-
       <div className="relative">
         <h2 className="font-pacifico text-xl text-[#264788]">
           Confirm attendance
