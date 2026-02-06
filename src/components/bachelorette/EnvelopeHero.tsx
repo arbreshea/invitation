@@ -9,7 +9,7 @@ export default function EnvelopeHero() {
 
   return (
     <div
-      className="relative flex min-h-dvh  overflow-hidden px-6 pt-60 "
+      className="relative flex min-h-dvh  overflow-hidden px-6 pt-40 "
       style={{
         backgroundImage: `url(${backgroundPool})`,
         backgroundSize: "cover",
