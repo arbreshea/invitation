@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import InviteRsvpForm from "../../components/invite/InviteRsvpForm";
 import MobileShell from "../../components/layout/MobileShell";
 import EnvelopeHero from "../../components/bachelorette/EnvelopeHero";
 import BacheloretteTripOverviewSection from "../../components/bachelorette/BacheloretteTripOverviewSection";
@@ -14,8 +13,9 @@ import BacheloretteNightTwoDsp from "../../components/bachelorette/BacheloretteN
 import BacheloretteNightOneDinner from "../../components/bachelorette/BacheloretteNightOneDinner";
 import BacheloretteNightOneDsp from "../../components/bachelorette/BacheloretteNightOneDsp";
 import BacheloretteNightTwoDinner from "../../components/bachelorette/BacheloretteNightTwoDinner";
-import GoogleMapEmbed from "../../components/bachelorette/map/BacheloretteLocation";
+import GoogleMapEmbed from "../../components/map/Location";
 import BacheloretteDayThree from "../../components/bachelorette/BacheloretteDayThree";
+import InviteRsvpFormBachelorette from "../../components/invite/InviteRsvpFormBachelorette";
 
 export default function BacheloretteInvitePage() {
   const [names, setNames] = useState<string[]>([]);
@@ -49,7 +49,7 @@ export default function BacheloretteInvitePage() {
   }, []);
 
   return (
-    <MobileShell>
+    <MobileShell className="bg-rose-50">
       <div className="min-h-dvh text-white font-playfair">
         <EnvelopeHero />
         <ScrollReveal>
@@ -101,12 +101,13 @@ export default function BacheloretteInvitePage() {
         </ScrollReveal>
 
         <GoogleMapEmbed
+          borderColor="#264788"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3044.371081785577!2d19.666745875235787!3d40.267506371464016!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x135ad7ca6463359d%3A0xb806c4130fd66d6b!2sVilla%20Si%20Era!5e0!3m2!1sen!2s!4v1770125056877!5m2!1sen!2s"
           title="Villa Location"
         />
 
         <div className="">
-          <InviteRsvpForm
+          <InviteRsvpFormBachelorette
             eventType="bachelorette"
             names={names}
             onSubmit={async (payload) => {
