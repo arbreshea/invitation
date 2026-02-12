@@ -108,14 +108,26 @@ function Countdown({ target }: { target: Date }) {
   );
 }
 
+/** ✅ preload helper */
+function preloadImage(src: string) {
+  return new Promise<void>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    img.src = src;
+  });
+}
+
 export default function HennaInvitePage() {
   const [names, setNames] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingNames, setLoadingNames] = useState(true);
+
+  const [assetsReady, setAssetsReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadNames() {
       try {
         const res = await fetch("/.netlify/functions/pending?type=henna");
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
@@ -126,95 +138,135 @@ export default function HennaInvitePage() {
         console.error(e);
         if (!cancelled) setNames([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setLoadingNames(false);
       }
     }
 
-    load();
+    loadNames();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // 29 Aug 2026 @ 19:30 (local)
+  // ✅ preload the SVG images before rendering the page
+  useEffect(() => {
+    let cancelled = false;
+
+    async function preloadAssets() {
+      try {
+        await Promise.all([
+          preloadImage(MainSection),
+          preloadImage(InviteDetails),
+        ]);
+      } catch (e) {
+        // even if preload fails, don't block forever
+        console.error(e);
+      } finally {
+        if (!cancelled) setAssetsReady(true);
+      }
+    }
+
+    preloadAssets();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 29 Aug 2026 @ 19:00 (local)
   const targetDate = useMemo(() => new Date(2026, 7, 29, 19, 0, 0), []);
+
+  const pageReady = assetsReady; // (you can also require !loadingNames if you want)
 
   return (
     <MobileShell className="bg-white">
-      <div className="min-h-dvh text-white font-playfair">
-        <div className="relative w-full">
-          <img
-            src={MainSection}
-            alt="Henna invitation"
-            className="w-full h-auto block"
-          />
-          <a
-            href="#details"
-            aria-label="Kliko per detaje"
-            className="absolute"
-            style={{
-              left: "56%",
-              top: "68%",
-              width: "40%",
-              height: "14%",
-              borderRadius: "9999px",
-            }}
-          />
-          <a
-            href="#rsvp"
-            aria-label="Konfirmo pjesemarrjen"
-            className="absolute"
-            style={{
-              left: "12%",
-              top: "82%",
-              width: "55%",
-              height: "12%",
-            }}
-          />
+      {!pageReady ? (
+        <div className="min-h-dvh flex items-center justify-center px-6">
+          <div className="text-center">
+            <div className="mx-auto h-10 w-10 rounded-full border-2 border-[#7a1f2b]/30 border-t-[#7a1f2b] animate-spin" />
+            <p className="mt-4 text-[#7a1f2b]/80 font-playfair">
+              Duke u ngarkuar…
+            </p>
+          </div>
         </div>
+      ) : (
+        <div className="min-h-dvh text-white font-playfair">
+          <div className="relative w-full">
+            <img
+              src={MainSection}
+              alt="Henna invitation"
+              className="w-full h-auto block"
+              loading="eager"
+              decoding="async"
+            />
 
-        <div id="details">
-          <img
-            src={InviteDetails}
-            alt="Henna invitation"
-            className="w-full h-auto block"
-          />
+            <a
+              href="#details"
+              aria-label="Kliko per detaje"
+              className="absolute"
+              style={{
+                left: "56%",
+                top: "68%",
+                width: "40%",
+                height: "14%",
+                borderRadius: "9999px",
+              }}
+            />
+            <a
+              href="#rsvp"
+              aria-label="Konfirmo pjesemarrjen"
+              className="absolute"
+              style={{
+                left: "12%",
+                top: "82%",
+                width: "55%",
+                height: "12%",
+              }}
+            />
+          </div>
+
+          <div id="details">
+            <img
+              src={InviteDetails}
+              alt="Henna invitation details"
+              className="w-full h-auto block"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+
+          <Countdown target={targetDate} />
+
+          <div>
+            <GoogleMapEmbed
+              borderColor="#ffc5d3"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2941.9335666100487!2d21.515630675374126!3d42.4929649711808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1354edee8b39e28d%3A0xf7956dbfdca5b9fc!2sGaja%20Venue!5e0!3m2!1sen!2s!4v1770796890289!5m2!1sen!2s"
+              title="Restaurant Location"
+            />
+          </div>
+
+          <div id="rsvp">
+            <InviteRsvpFormHenna
+              eventType="henna"
+              names={names}
+              onSubmit={async (payload) => {
+                await fetch("/.netlify/functions/respond", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: payload.name,
+                    inviteType: "henna",
+                    accepted: payload.response === "YES",
+                  }),
+                });
+              }}
+            />
+
+            {loadingNames && (
+              <p className="mt-4 text-sm text-white/70">Loading…</p>
+            )}
+          </div>
         </div>
-
-        {/* ✅ COUNTDOWN (just above the location) */}
-        <Countdown target={targetDate} />
-
-        <div>
-          <GoogleMapEmbed
-            borderColor="#ffc5d3"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2941.9335666100487!2d21.515630675374126!3d42.4929649711808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1354edee8b39e28d%3A0xf7956dbfdca5b9fc!2sGaja%20Venue!5e0!3m2!1sen!2s!4v1770796890289!5m2!1sen!2s"
-            title="Restaurant Location"
-          />
-        </div>
-
-        <div id="rsvp" className="">
-          <InviteRsvpFormHenna
-            eventType="henna"
-            names={names}
-            onSubmit={async (payload) => {
-              const name = payload.name;
-              const answer = payload.response;
-
-              await fetch("/.netlify/functions/respond", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name,
-                  inviteType: "henna",
-                  accepted: answer === "YES",
-                }),
-              });
-            }}
-          />
-
-          {loading && <p className="mt-4 text-sm text-white/70">Loading…</p>}
-        </div>
-      </div>
+      )}
     </MobileShell>
   );
 }
