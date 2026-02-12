@@ -109,7 +109,7 @@ export default function InviteRsvpForm({
                 }}
                 onFocus={() => setIsOpen(true)}
                 placeholder="Kërko emrin…"
-                className="w-full rounded-2xl border border-[#7a1f2b]/20 bg-white/80 px-4 py-3 text-[14px] text-[#7a1f2b] shadow-sm outline-none placeholder:text-[#7a1f2b]/40 focus:border-[#7a1f2b]/35 focus:ring-4 focus:ring-[#ffc5d3]/35"
+                className="w-full rounded-2xl border border-[#7a1f2b]/20 bg-white/80 px-4 py-3 text-[16px] text-[#7a1f2b] shadow-sm outline-none placeholder:text-[#7a1f2b]/40 focus:border-[#7a1f2b]/35 focus:ring-4 focus:ring-[#ffc5d3]/35"
               />
 
               {isOpen && filtered.length > 0 && (
